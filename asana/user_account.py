@@ -10,7 +10,7 @@ class UserAccount(AsanaAPI):
 
     @property
     def user_details(self) -> User:
-        r = self.get_user_info()['data']
+        r = self.get_user_info()
         return User(
             gid=r['gid'],
             email=r['email'],
