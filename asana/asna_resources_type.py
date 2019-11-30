@@ -13,11 +13,14 @@ class User:
         self.name = name
 
 
-class Section:
-    def __init__(self, gid, name, resource_type):
+class SectionResource:
+    def __init__(self, index, gid, name, resource_type, tasks=None):
+        self.index = index
         self.gid = gid
         self.name = name
         self.resource_type = resource_type
+        if tasks:
+            self.tasks: [TaskResource] = tasks
 
 
 class ProjectResource:
@@ -26,8 +29,7 @@ class ProjectResource:
         self.gid = gid
         self.name = name
         self.resource_type = resource_type
-        if board:
-            self.board: [Section] = board
+        self.board  = board
 
 
 class TaskResource:

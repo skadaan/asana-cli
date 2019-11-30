@@ -1,8 +1,5 @@
 import os
-import sys
-import json
 import requests
-from urllib.error import HTTPError
 
 try:
     ASANA_TOKEN = os.environ['ASANA_TOKEN']
@@ -22,11 +19,11 @@ class AsanaAPI:
 
     def get_user_info(self):
         """
-        Gets the current user of Asana's API. 
+        Gets the current user of Asana's API.
         return dict: eg: {'gid': str, 'email': [users email]. 'name': [users first and last name]}
         """
         r = self._get('users/me')
-        return r.json()
+        return r.json()['data']
 
     def get_user_workspaces(self):
         """
@@ -34,7 +31,7 @@ class AsanaAPI:
         return [dict]: eg: {'gid': str, 'name': [name of workspace], 'resource_type': 'workspace'}
         """
         r = self._get('workspaces')
-        return r.json()
+        return r.json()['data']
 
     def get_projects(self):
         """
@@ -42,7 +39,7 @@ class AsanaAPI:
         return [dict]: eg: {'gid': str, 'name': [name of project], 'resource_type': 'project'}
         """
         r = self._get('projects')
-        return r.json()
+        return r.json()['data']
 
     def get_tasks(self):
         """
@@ -50,7 +47,7 @@ class AsanaAPI:
         return [dict]: eg: {'gid': str, 'name': [name of task], 'resource_type': 'task'}
         """
         r = self._get('tasks')
-        return r.json()
+        return r.json()['data']
 
     def get_project_tasks(self, project_gid):
         """
@@ -58,11 +55,11 @@ class AsanaAPI:
         return [dict]: eg: [{'gid': str, 'name': [name of task], 'resource_type': 'task'},]
         """
         r = self._get(f'projects/{project_gid}/tasks')
-        return r.json()
+        return r.json()['data']
 
     def get_project_sections(self, project_gid):
         r = self._get(f'projects/{project_gid}/sections')
-        return r.json()
+        return r.json()['data']
 
     def get_tasks_details(self, task_gid):
         """
@@ -76,6 +73,24 @@ class AsanaAPI:
         Updates the given task from task_gid
         """
         r = self._put(f'tasks/{task_gid}', data=kwargs)
+        return r.json()['data']
+
+    def get_tasks_from_section(self, section_gid):
+        """
+        Gets all tasks from a given section
+        :param section_gid: section id to get tasks in
+        :return:
+        """
+        r = self._get(f'sections/{section_gid}/tasks')
+        return r.json()['data']
+
+    def add_task_to_section(self, section_gid, **kwargs):
+        """
+        Adds a task on the board in the specific section
+        :param task_name: name of task
+        :param section_gid: section id to add task in
+        """
+        r = self._post(f'/sections/{section_gid}/addTask', data=kwargs)
         return r.json()['data']
 
     def _get(self, endpoint: str, data: dict = None):

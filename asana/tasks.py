@@ -1,19 +1,24 @@
+import click
+
 from api import AsanaAPI
 from asna_resources_type import TaskResource
 
 
 class Tasks(AsanaAPI):
 
-    def __init__(self, workspace_gid=None, project_gid=None):
+    def __init__(self, workspace_gid=None, project_gid=None, section_gid=None):
         super().__init__()
         self.workspace_gid = workspace_gid
         self.project_gid = project_gid
+        self.section_gid = section_gid
 
     @property
     def project_tasks(self) -> [TaskResource]:
         r = self.__get_tasks
+        if len(r) == 0:
+            return
         tasks = []
-        for i, task in enumerate(r['data']):
+        for i, task in enumerate(r):
             task_details = self.get_tasks_details(task['gid'])
             tasks.append(TaskResource(
                 index=i,
@@ -38,4 +43,6 @@ class Tasks(AsanaAPI):
             pass
         if self.project_gid:
             return self.get_project_tasks(self.project_gid)
+        if self.section_gid:
+            return self.get_tasks_from_section(self.section_gid)
         return self.get_tasks()
