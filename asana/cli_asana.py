@@ -80,10 +80,7 @@ def show_tasks(project=None):
 def __simple_tasks(tasks_instance: Tasks):
     tasks = tasks_instance
     tasks = tasks.project_tasks
-    for task in tasks:
-        status = 'done' if task.completed else 'incomplete'
-        color = 'yellow' if status == 'incomplete' else 'blue'
-        click.echo(click.style(f'\t- {task.name}', fg=color))
+    __echo_tasks(tasks)
 
 
 def __section_tasks(tasks_instance: Tasks, section_gid, section_name):
@@ -92,13 +89,17 @@ def __section_tasks(tasks_instance: Tasks, section_gid, section_name):
     section_tasks = tasks.project_tasks
     click.echo(click.style(f'\t{section_name}:', fg='white', bold=True))
     if section_tasks:
-        for task in section_tasks:
-            status = 'done' if task.completed else 'incomplete'
-            color = 'yellow' if status == 'incomplete' else 'blue'
-            click.echo(click.style(f'\t- {task.name}', fg=color))
+        __echo_tasks(section_tasks)
     else:
         click.echo(click.style(f'\t(no tasks)', fg='white'))
     print('\n')
+
+
+def __echo_tasks(tasks):
+    for task in tasks:
+        status = 'done' if task.completed else 'incomplete'
+        color = 'yellow' if status == 'incomplete' else 'blue'
+        click.echo(click.style(f'\t- {task.name}', fg=color))
 
 
 if __name__ == '__main__':

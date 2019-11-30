@@ -29,7 +29,7 @@ class ProjectResource:
         self.gid = gid
         self.name = name
         self.resource_type = resource_type
-        self.board  = board
+        self.board = board
 
 
 class TaskResource:
