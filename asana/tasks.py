@@ -1,7 +1,10 @@
+import configparser
+
 import click
 
 from api import AsanaAPI
 from asna_resources_type import TaskResource
+from util import get_value_in_data_file
 
 
 class Tasks(AsanaAPI):
@@ -20,13 +23,15 @@ class Tasks(AsanaAPI):
         tasks = []
         for i, task in enumerate(r):
             task_details = self.get_tasks_details(task['gid'])
-            tasks.append(TaskResource(
-                index=i,
-                gid=task['gid'],
-                name=task['name'],
-                assignee=task_details['assignee'],
-                completed=task_details['completed'],
-                resource_type=task['resource_type']))
+            if task_details['assignee'] is not None and \
+                    task_details['assignee']['gid'] == get_value_in_data_file('user', 'gid'):
+                tasks.append(TaskResource(
+                    index=i,
+                    gid=task['gid'],
+                    name=task['name'],
+                    assignee=task_details['assignee'],
+                    completed=task_details['completed'],
+                    resource_type=task['resource_type']))
         return tasks
 
     def update_task_complete_status(self, task_name, completion: bool):

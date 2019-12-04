@@ -1,13 +1,14 @@
 import click
-import json
 import sys
-from os import path
 
 # all_colors = 'black', 'red', 'green', 'yellow', 'blue', 'magenta', \
 #              'cyan', 'white', 'bright_black', 'bright_red', \
 #              'bright_green', 'bright_yellow', 'bright_blue', \
 #              'bright_magenta', 'bright_cyan', 'bright_white'
 from projects import Projects
+from util import file_exists, section_in_data_file, add_to_data_file, update_data_file, DATA_FILE, \
+    convert_to_dict, get_value_in_data_file
+from workspaces import Workspaces
 from tasks import Tasks
 from user_account import UserAccount
 
@@ -15,7 +16,24 @@ from user_account import UserAccount
 @click.group()
 def main():
     me = UserAccount()
-    click.echo(click.style(f'Hello {me.account_info.name} :) Thanks for using asana_cli', fg='green'))
+    if file_exists is False:
+        if 'user' not in section_in_data_file():
+            add_to_data_file('user', name=me.account_info.name, gid=me.account_info.gid)
+            click.echo(click.style(f'Hello {me.account_info.name} :) Thanks for using asana_cli\n', fg='green'))
+
+
+@main.command(name='set_workspace')
+@click.option('--workspace', required=True)
+def set_workspace(workspace):
+    workspaces = Workspaces()
+    workspace = workspaces.find_workspace(workspace)
+    if 'workspace' in section_in_data_file():
+        current_workspace = get_value_in_data_file('workspace', 'name')
+        update_data_file('workspace', gid=workspace.gid, name=workspace.name)
+        click.echo(click.style(f'replacing {current_workspace} with {workspace.name} as the default workspace', fg='yellow'))
+    else:
+        add_to_data_file('workspace', gid=workspace.gid, name=workspace.name)
+        click.echo(click.style(f'"{workspace.name}" added as the default project', fg='green'))
 
 
 @main.command(name='set_default_project')
@@ -23,14 +41,14 @@ def main():
 def set_default_project(project):
     projects = Projects()
     project = projects.find_project(project)
-    data = {'default_project': {'gid': int(project.gid), 'name': project.name}}
-    if project.board:
-        data['default_project']['board'] = []
-        for board in project.board:
-            data['default_project']['board'].append({'gid': int(board.gid), 'name': board.name})
-    with open('data.json', 'w') as f:
-        json.dump(data, f, indent=4, sort_keys=True)
-    click.echo(click.style(f'"{project.name}" added as the default project', fg='green'))
+    board = __get_project_board(project)
+    if 'project' in section_in_data_file():
+        current_project = get_value_in_data_file('project', 'name')
+        update_data_file('project', gid=project.gid, name=project.name, board=str(board))
+        click.echo(click.style(f'replacing {current_project} with {project.name} as the default project', fg='yellow'))
+    else:
+        add_to_data_file('project', gid=project.gid, name=project.name, board=str(board))
+        click.echo(click.style(f'"{project.name}" added as the default project', fg='green'))
 
 
 @main.group(name='show')
@@ -43,27 +61,21 @@ def show_():
 def show_tasks(project=None):
     tasks = Tasks()
     if project is None:
-        file_exists = path.exists("data.json")
-        if file_exists:
-            with open('data.json') as f:
-                data = f.read()
-                if data:
-                    data = json.loads(data)
-        if file_exists is False or len(data) == 0 or 'default_project' not in data.keys():
+        if file_exists is False or 'project' not in section_in_data_file():
             click.echo(click.style(
                 'Project name not provided. Either set a default Project name with the option "set_default_project '
                 '--project=<project_name>" or pass in "--project=<project_name>" argument ',
                 fg='red'))
             sys.exit(0)
         else:
-            project = data['default_project']['name']
-            if 'board' in data['default_project'].keys():
-                sections = data['default_project']['board']
+            project = get_value_in_data_file('project', 'name')
+            if get_value_in_data_file('project', 'board') != 'None':
+                sections = convert_to_dict(get_value_in_data_file('project', 'board'))
                 click.echo(click.style(f'{project} Tasks:', fg='magenta', bold=True, underline=True))
                 for section in sections:
                     __section_tasks(tasks, section['gid'], section['name'])
             else:
-                tasks.project_gid = data['default_project']['gid']
+                tasks.project_gid = get_value_in_data_file('project', 'gid')
                 __simple_tasks(tasks)
     else:
         projects = Projects()
@@ -75,6 +87,14 @@ def show_tasks(project=None):
                 __section_tasks(tasks, section.gid, section.name)
         else:
             __simple_tasks(tasks)
+
+
+def __get_project_board(project: Projects):
+    if project.board:
+        board = ''
+        for lane in project.board:
+            board += '{"gid": "'+lane.gid+'", "name": "'+lane.name+'"},'
+        return board.rstrip(',')
 
 
 def __simple_tasks(tasks_instance: Tasks):
