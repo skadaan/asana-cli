@@ -1,4 +1,4 @@
-from api import AsanaAPI
+from asana.api import AsanaAPI
 
 
 class Sections(AsanaAPI):

@@ -1,5 +1,5 @@
-from api import AsanaAPI
-from asna_resources_type import ProjectResource, SectionResource
+from asana.api import AsanaAPI
+from asana.asna_resources_type import ProjectResource, SectionResource
 
 
 class Projects(AsanaAPI):

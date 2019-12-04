@@ -1,10 +1,6 @@
-import configparser
-
-import click
-
-from api import AsanaAPI
-from asna_resources_type import TaskResource
-from util import get_value_in_data_file
+from asana.api import AsanaAPI
+from asana.asna_resources_type import TaskResource
+from asana.util import get_value_in_data_file
 
 
 class Tasks(AsanaAPI):

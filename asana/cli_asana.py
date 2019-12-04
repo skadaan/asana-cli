@@ -5,12 +5,17 @@ import sys
 #              'cyan', 'white', 'bright_black', 'bright_red', \
 #              'bright_green', 'bright_yellow', 'bright_blue', \
 #              'bright_magenta', 'bright_cyan', 'bright_white'
-from projects import Projects
-from util import file_exists, section_in_data_file, add_to_data_file, update_data_file, DATA_FILE, \
-    convert_to_dict, get_value_in_data_file
-from workspaces import Workspaces
-from tasks import Tasks
-from user_account import UserAccount
+
+from asana.projects import Projects
+from asana.workspaces import Workspaces
+from asana.tasks import Tasks
+from asana.user_account import UserAccount
+from asana.util import file_exists, \
+    section_in_data_file, \
+    add_to_data_file, \
+    update_data_file, \
+    convert_to_dict, \
+    get_value_in_data_file
 
 
 @click.group()

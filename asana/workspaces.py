@@ -1,5 +1,5 @@
-from api import AsanaAPI
-from asna_resources_type import WorkspaceResource
+from asana.api import AsanaAPI
+from asana.asna_resources_type import WorkspaceResource
 
 
 class Workspaces(AsanaAPI):
