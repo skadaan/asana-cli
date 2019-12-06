@@ -33,7 +33,7 @@ class ProjectResource:
 
 
 class TaskResource:
-    def __init__(self, gid, name, assignee, completed, resource_type, index):
+    def __init__(self, gid, name, resource_type, index, assignee=None, completed=None):
         self.index = index
         self.gid = gid
         self.name = name

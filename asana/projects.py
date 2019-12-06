@@ -12,17 +12,7 @@ class Projects(AsanaAPI):
         projects = []
         r = self.get_projects()
         for i, project in enumerate(r):
-            r_sections = self.get_project_sections(project['gid'])
-            if 'no section' not in r_sections.pop()['name']:
-                sections = []
-                for j, section in enumerate(r_sections):
-                    sections.append(SectionResource(
-                        index=j,
-                        gid=section['gid'],
-                        name=section['name'],
-                        resource_type=section['resource_type']))
-            else:
-                sections = None
+            sections = None
             projects.append(ProjectResource(
                 index=i,
                 gid=project['gid'],
@@ -33,7 +23,17 @@ class Projects(AsanaAPI):
 
     def find_project(self, project_name):
         projects = self.projects
-        project = [project for project in projects if project_name.lower() in project.name.lower()]
+        project = [project for project in projects if project_name.lower() in project.name.lower()].pop()
+        r = self.get_project_sections(project.gid)
+        if 'no section' not in r[0]['name']:
+            sections = []
+            for j, section in enumerate(r):
+                sections.append(SectionResource(
+                    index=j,
+                    gid=section['gid'],
+                    name=section['name'],
+                    resource_type=section['resource_type']))
+            project.board = sections
         if project:
-            return project.pop()
+            return project
         raise ValueError(f'Cannot find {project_name}')
