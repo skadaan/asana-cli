@@ -13,21 +13,16 @@ class Tasks(AsanaAPI):
 
     @property
     def project_tasks(self) -> [TaskResource]:
-        r = self.__get_tasks
+        r = self.get_tasks(workspace=self.workspace, assignee=self.assignee, sections=self.section_gid, completed=False)
         if len(r) == 0:
             return
         tasks = []
         for i, task in enumerate(r):
-            task_details = self.get_tasks_details(task['gid'])
-            if task_details['assignee'] is not None and \
-                    task_details['assignee']['gid'] == get_value_in_data_file('user', 'gid'):
-                tasks.append(TaskResource(
-                    index=i,
-                    gid=task['gid'],
-                    name=task['name'],
-                    assignee=task_details['assignee'],
-                    completed=task_details['completed'],
-                    resource_type=task['resource_type']))
+            tasks.append(TaskResource(
+                index=i,
+                gid=task['gid'],
+                name=task['name'],
+                resource_type=task['resource_type']))
         return tasks
 
     def update_task_complete_status(self, task_name, completion: bool):

@@ -1,5 +1,7 @@
 import os
 import requests
+from asana.util import get_value_in_data_file
+from furl import furl
 
 try:
     ASANA_TOKEN = os.environ['ASANA_TOKEN']
@@ -13,9 +15,12 @@ HEADERS = {
 
 
 class AsanaAPI:
+
     def __init__(self):
         self.url = URL
         self.headers = HEADERS
+        self.workspace = get_value_in_data_file('workspace', 'gid')
+        self.assignee = get_value_in_data_file('user', 'gid')
 
     def get_user_info(self):
         """
@@ -41,12 +46,12 @@ class AsanaAPI:
         r = self._get('projects')
         return r.json()['data']
 
-    def get_tasks(self):
+    def get_tasks(self, workspace, **params):
         """
         Gets all tasks assigned to authorized user
         return [dict]: eg: {'gid': str, 'name': [name of task], 'resource_type': 'task'}
         """
-        r = self._get('tasks')
+        r = self._get(f'workspaces/{workspace}/tasks/search', **params)
         return r.json()['data']
 
     def get_project_tasks(self, project_gid):
@@ -93,9 +98,15 @@ class AsanaAPI:
         r = self._post(f'/sections/{section_gid}/addTask', data=kwargs)
         return r.json()['data']
 
-    def _get(self, endpoint: str, data: dict = None):
+    def _get(self, endpoint: str, data: dict = None, **params):
+
+        url = f'{self.url}/{endpoint}'
+        if params:
+            params = self.__manipulate_kwargs(params)
+            url = self.__with_parameters(url, params)
+
         r = requests.get(
-            url=f'{self.url}/{endpoint}',
+            url=url,
             headers=self.headers,
             data=data)
         if int(r.status_code) == 200 or int(r.status_code) == 201:
@@ -119,3 +130,17 @@ class AsanaAPI:
         if int(r.status_code) == 200 or int(r.status_code) == 201:
             return r
         # raise HTTPError(f'{r.status_code}: {r.content}')
+
+    @staticmethod
+    def __with_parameters(url, params):
+        unfurled = furl(url)
+        unfurled.add(query_params=params)
+        return unfurled.url
+
+    @staticmethod
+    def __manipulate_kwargs(kwargs):
+        if 'assignee' in kwargs.keys():
+            kwargs['assignee.any'] = kwargs.pop('assignee')
+        if 'sections' in kwargs.keys():
+            kwargs['sections.any'] = kwargs.pop('sections')
+        return kwargs

@@ -10,28 +10,22 @@ from asana.projects import Projects
 from asana.workspaces import Workspaces
 from asana.tasks import Tasks
 from asana.user_account import UserAccount
-from asana.util import file_exists, \
-    section_in_data_file, \
-    add_to_data_file, \
-    update_data_file, \
-    convert_to_dict, \
-    get_value_in_data_file
+from asana.util import *
 
 
 @click.group()
 def main():
-    me = UserAccount()
-    if file_exists is False:
-        if 'user' not in section_in_data_file():
-            add_to_data_file('user', name=me.account_info.name, gid=me.account_info.gid)
-            click.echo(click.style(f'Hello {me.account_info.name} :) Thanks for using asana_cli\n', fg='green'))
+    if file_exists is False or 'user' not in section_in_data_file():
+        me = UserAccount()
+        add_to_data_file('user', name=me.account_info.name, gid=me.account_info.gid)
+        click.echo(click.style(f'Hello {me.account_info.name} :) Thanks for using asana_cli\n', fg='green'))
 
 
-@main.command(name='set_workspace')
-@click.option('--workspace', required=True)
-def set_workspace(workspace):
+@main.command(name='set_default_workspace')
+@click.option('--name', required=True)
+def set_workspace(name):
     workspaces = Workspaces()
-    workspace = workspaces.find_workspace(workspace)
+    workspace = workspaces.find_workspace(name)
     if 'workspace' in section_in_data_file():
         current_workspace = get_value_in_data_file('workspace', 'name')
         update_data_file('workspace', gid=workspace.gid, name=workspace.name)
@@ -42,10 +36,10 @@ def set_workspace(workspace):
 
 
 @main.command(name='set_default_project')
-@click.option('--project', required=True)
-def set_default_project(project):
+@click.option('--name', required=True)
+def set_default_project(name):
     projects = Projects()
-    project = projects.find_project(project)
+    project = projects.find_project(name)
     board = __get_project_board(project)
     if 'project' in section_in_data_file():
         current_project = get_value_in_data_file('project', 'name')
@@ -69,7 +63,7 @@ def show_tasks(project=None):
         if file_exists is False or 'project' not in section_in_data_file():
             click.echo(click.style(
                 'Project name not provided. Either set a default Project name with the option "set_default_project '
-                '--project=<project_name>" or pass in "--project=<project_name>" argument ',
+                '--name=<project_name>" or pass in "--project=<project_name>" argument ',
                 fg='red'))
             sys.exit(0)
         else:
@@ -91,6 +85,7 @@ def show_tasks(project=None):
             for section in project.board:
                 __section_tasks(tasks, section.gid, section.name)
         else:
+            tasks.project_gid = project.gid
             __simple_tasks(tasks)
 
 
