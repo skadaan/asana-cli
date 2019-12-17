@@ -37,3 +37,11 @@ class Projects(AsanaAPI):
         if project:
             return project
         raise ValueError(f'Cannot find {project_name}')
+
+
+def get_project_board(project: Projects):
+    if project.board:
+        board = ''
+        for lane in project.board:
+            board += '{"gid": "'+lane.gid+'", "name": "'+lane.name+'"},'
+        return board.rstrip(',')

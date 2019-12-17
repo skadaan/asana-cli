@@ -77,4 +77,4 @@ target/
 
 # other
 data.json
-data.ini
+asana/data/data.ini
